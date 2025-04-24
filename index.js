@@ -1,69 +1,79 @@
-const select=document.querySelector("select");
-const btn=document.querySelector("button");
-const mainBalance=document.getElementById('total');
-const totalDeposit=document.getElementById('deposite');
-const totalWithdraw=document.getElementById('withdraw')
-const amount=document.getElementById('amount');
-const list=document.getElementById('list')
+// Get references to DOM elements
+const letter = document.getElementById("letter");
+const time = document.getElementById("time");
+const score = document.getElementById("score");
+const button = document.getElementById("button");
+const cancel=document.getElementById("cancel");
 
-const history=document.getElementById('his')
-const table=document.querySelector('table')
+// Initialize variables
+let currentLetter = ''; 
+let timeLimit = 30;      
+let timeEnd;            
+let timeLeft;           
 
+// Function to generate a random letter
+function letterGenerator() {
+    const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    return letters[Math.floor(Math.random() * letters.length)];
+}
 
+// Function to generate and display a new letter
+function generateNewLetter() {
+    currentLetter = letterGenerator(); // Generate a random letter
+    letter.innerText = currentLetter; // Display the letter in the DOM
+}
 
-btn.addEventListener("click",()=>{
-    const inputAmount=parseInt(amount.value)
-    const method=select.value.toUpperCase();
+// Function to check if the pressed key matches the current letter
+function checkLetter(e) {
+    if (e.key.toUpperCase() === currentLetter) { // Check if the key matches
+        score.innerText++; // Increment the score
+        generateNewLetter(); // Generate a new letter
+    }
+}
+
+function endGame() {
+    clearInterval(timeEnd);
+    document.removeEventListener("keydown", checkLetter);
+    alert("Game Cancelled");
     
-    if(select.value==='deposite'){
-        const total=parseInt(mainBalance.innerText)
-        const deposite=parseInt(totalDeposit.innerText)
-        mainBalance.innerText=total+inputAmount;
-        totalDeposit.innerText=deposite+inputAmount;
-    }else{
-        const total=parseInt(mainBalance.innerText)
-        const withdraw=parseInt(totalWithdraw.innerText)
-        if(total<inputAmount){
-            alert("Insufficient balance")
-            return;
+    cancel.style.display='none'; // Hide the cancel button
+    button.style.display='block'; // Show the button again
+  
+    // Optional: Reset everything visually
+    time.innerText = timeLimit;
+    score.innerText = 0;
+    letter.innerText = "?";
+  }
+
+// Function to start the game
+function startGame() {
+    button.style.display = 'none'; // Hide the button
+    cancel.style.display='block'; // Show the cancel button
+    timeLeft = timeLimit; // Reset the time left
+    time.innerText = timeLeft; // Display the initial time
+    score.innerText = 0; // Reset the score
+    generateNewLetter(); // Generate the first letter
+
+    // Remove any existing keydown event listener to avoid duplicates
+    document.removeEventListener('keydown', checkLetter);
+    // Add a new keydown event listener
+    document.addEventListener('keydown', checkLetter);
+
+    // Clear any existing interval timer
+    clearInterval(timeEnd);
+
+    // Start a new interval timer to count down the time
+    timeEnd = setInterval(() => {
+        timeLeft--; // Decrease the time left
+        time.innerText = timeLeft; // Update the time in the DOM
+
+        if (timeLeft <= 0) { // Check if time has run out
+            alert("Game Over"); // Show game over alert
+            clearInterval(timeEnd); // Stop the timer
+            document.removeEventListener('keydown', checkLetter); // Remove the event listener
+            button.innerText='New Game'
+            button.style.display='block'; // Show the button again
         }
-        mainBalance.innerText=total-inputAmount;
-        totalWithdraw.innerText=withdraw+inputAmount;
-    };
+    }, 1000); // Run the interval every 1 second
+}
 
-    const tr=document.createElement('tr');
-    
-    tr.classList.add("m-2");
-    
-    tr.innerHTML=`
-    <td class='text-center p-3'>${method}</td>
-    <td class='text-center p-3'>${inputAmount}</td>
-    <td class='text-center p-3'>${new Date().toLocaleString()}</td>
-    <td class='text-center p-3'>
-        <button  class='remove-btn bg-red-500 text-white p-1 rounded'>Remove</button>
-    </td>
-    `
-
-    list.appendChild(tr);
-
-    tr.querySelector('.remove-btn').addEventListener('click',()=>{
-        tr.remove()
-    })
-
-    amount.value = 0
-    
-    
-});
-
-
-
-table.style.tableLayout='auto'
-table.style.borderWidth='1px'
-table.style.borderColor='black'
-table.style.minWidth='100%'
-
-
-history.style.marginTop='20px'
-history.style.overflowX='auto'
-history.style.overflowY='scroll'
-history.style.maxHeight='200px'
